@@ -30,6 +30,7 @@
 
 #define BUF_LEN 48000
 #define DEF_FREQ 440
+#define DEF_BEND 26
 #define DEF_DUR 1
 #define DEF_NOTE 48
 #define MAX_NOTE 87
@@ -39,12 +40,14 @@ snd_pcm_sframes_t g_frames;
 int channels =1;
 snd_pcm_format_t format = SND_PCM_FORMAT_FLOAT;
 int rate = 48000;
+float bend = DEF_BEND; 
 
 #define HELP_TEXT "Bendit Usage:\n\
   freq dur : without options, play at frequency freq, in duration dur in seconds.\n\
   -d dur : set duration in seconds (default: 1 sec)\n\
   -f freq : set frequency in HZ, and play it. (default: 440 HZ)\n\
   -F freq : set frequency in HZ, and play the sequence freq between start and stop optionss\n\
+  -b bend : set bend in HZ\n\ 
   -h : print this Help\n\
   -n note : set the note number and play it. (default: 48)\n\
   -N note : set note number and play the notes sequence between start and stop options\n\
@@ -63,7 +66,7 @@ float* genTone(float freq) {
     half = BUF_LEN;
     for (int i=0; i< half; i++) {
       tau = ((float)i)/((float)half);
-      g_buffer[i] = sin(2*M_PI*i*(26*4*tau*(tau-1) + freq)/rate);
+      g_buffer[i] = sin(2*M_PI*i*(bend*4*tau*(tau-1) + freq)/rate);  // 26
     }
     return g_buffer;
 }
@@ -187,6 +190,7 @@ int main(int argc, char *argv[]) {
    
     float freq = DEF_FREQ; // in hertz
     float dur = DEF_DUR; // in seconds
+    //float bend = DEF_BEND; 
     int note = DEF_NOTE;
     int start =0;
     int stop =1;
@@ -200,6 +204,7 @@ int main(int argc, char *argv[]) {
 	{{"duration",  required_argument, 0, 'd'},
 	 {"frequency",  required_argument, 0, 'f'},
 	 {"frequency_sequence",  required_argument, 0, 'F'},
+	 {"bend",  required_argument, 0, 'b'},
 	 {"help",      no_argument,       0, 'h'},
 	 {"note",  required_argument, 0, 'n'},
 	 {"note_sequence",  required_argument, 0, 'N'},
@@ -225,6 +230,8 @@ int main(int argc, char *argv[]) {
       case 'F':
 	mode =2;
 	freq = atof(optarg); break;
+      case 'b':
+        bend = atof(optarg); break;
       case 'h':
 	printf(HELP_TEXT);
 	return 0;
